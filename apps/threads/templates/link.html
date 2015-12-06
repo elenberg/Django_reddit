@@ -13,6 +13,11 @@
 	</div>
 </div>
 {% if user.is_authenticated%}
+
+<div id="accordion">
+	<h3> Reply </h3>
+<div>
+	
 <p> Commenting as {{user.username}}</p>
 <form action="" method="POST">
 	
@@ -21,15 +26,60 @@
   <button value="l {{link.id}}" class="btn btn-primary btn-sm disabled" name="button"> Submit Comment</button>
     {% csrf_token %}
 </form>
+</div>
+</div>
 {%endif%}
 <ul class="list-group">
 	
 {% for comment in comments %}
 <li class="list-group-item">
-     <span class="badge pull-left">{{comment.vote.all.count}}</span>
+     <span class="badge pull-left" id="votes-{{comment.id}}">{{comment.vote.all.count}}</span>
+      	{% if not user.is_authenticated %}
+ 	<span class=badge> Log in to Vote</span>
+	
+ 	{% elif comment.pk not in vote_list %}
+
+ 	<form action="/v/c/{{comment.id}}/" method="POST">
+    		{% csrf_token %}
+ 	<button id="voteButton-{{comment.id}}">+</button>
+ 	</form>
+    {% else %}
+ 	<form action="/v/c/{{comment.id}}/" method="POST">
+    		{% csrf_token %}
+ 	<button id="voteButton-{{comment.id}}">-</button>
+ 	</form>
+	{%endif%}
+	<script>
+	$('#voteButton-{{comment.id}}').click( function (){
+		if( $('#voteButton-{{comment.id}}').text() == '+'){
+
+		var current = parseInt($('#votes-{{comment.id}}').text());
+		var newVal = current + 1;
+		$('#votes-{{comment.id}}').text(newVal);
+		$('#voteButton-{{comment.id}}').text('-')		
+		}
+		else{
+		var current = parseInt($('#votes-{{comment.id}}').text());
+		var newVal = current - 1;
+		$('#votes-{{comment.id}}').text(newVal);
+		$('#voteButton-{{comment.id}}').text('+')		
+		}
+	});
+	</script>
 	{{comment.description}}
 </li>
 {% if user.is_authenticated%}
+  <script>
+  $(function() {
+    $( "#accordion-c" ).accordion({
+    	collapsible: true,
+    	active: false
+    });
+  });
+  </script>
+<div id="accordion-c">
+	<h3> Reply </h3>
+<div>
 <p> Commenting as {{user.username}}</p>
 <form action="" method="POST">
 	
@@ -38,6 +88,8 @@
   <button value="c {{comment.id}}" class="btn btn-primary btn-sm disabled" name="button"> Submit Comment</button>
     {% csrf_token %}
 </form>
+</div>
+</div>
 {%endif%}
 {% if comment.replies.all.exists == True  %}
 <ul>
@@ -52,3 +104,5 @@
 </ul>
 {% endfor%}
 {% endblock %}
+
+

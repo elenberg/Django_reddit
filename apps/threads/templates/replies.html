@@ -1,8 +1,53 @@
 <li class="list-group-item"> 
-     <span class="badge pull-left">{{comments.vote.all.count}}</span>
+     <span class="badge pull-left" id="votes-{{comments.id}}">{{comments.vote.all.count}}</span>
+      	{% if not user.is_authenticated %}
+ 	<span class=badge> Log in to Vote</span>
+	
+ 	{% elif comments.pk not in vote_list %}
+
+ 	<form action="/v/c/{{comments.id}}/" method="POST">
+    		{% csrf_token %}
+ 	<button id="voteButton-{{comments.id}}">+</button>
+ 	</form>
+    {% else %}
+ 	<form action="/v/c/{{comments.id}}/" method="POST">
+    		{% csrf_token %}
+ 	<button id="voteButton-{{comments.id}}">-</button>
+ 	</form>
+	{%endif%}
+	<script>
+	$('#voteButton-{{comments.id}}').click( function (){
+		if( $('#voteButton-{{comments.id}}').text() == '+'){
+
+		var current = parseInt($('#votes-{{comments.id}}').text());
+		var newVal = current + 1;
+		$('#votes-{{comments.id}}').text(newVal);
+		$('#voteButton-{{comments.id}}').text('-')		
+		}
+		else{
+		var current = parseInt($('#votes-{{comments.id}}').text());
+		var newVal = current - 1;
+		$('#votes-{{comments.id}}').text(newVal);
+		$('#voteButton-{{comments.id}}').text('+')		
+		}
+	});
+	</script>
 		{{comments.description}} 
 </li>
 {% if user.is_authenticated%}
+  <script>
+  $(function() {
+    $( "#accordion-c-{{comments.id}}" ).accordion({
+    	collapsible: true,
+    	active: false
+    });
+  });
+  </script>
+ <div id="accordion-c-{{comments.id}}">
+ 	
+ <h3>Reply</h3>
+ <div>
+ 	
 <p> Commenting as {{user.username}}</p>
 <form action="" method="POST">
 	
@@ -11,6 +56,8 @@
   <button value="c {{comments.id}}" class="btn btn-primary btn-sm disabled" name="button"> Submit Comment</button>
     {% csrf_token %}
 </form>
+ </div>
+ </div> 
 {%endif%}
 <ul class="list-group">
 {% if comments.replies.all.exists == True  %}

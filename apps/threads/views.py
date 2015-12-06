@@ -7,10 +7,21 @@ from .models import Link, Vote, Subreddit, Comment
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404
+from django.views.generic.edit import FormView
 
 class LinkListView(ListView):
     model = Link
 
+    def get_context_data(self, **kwargs):
+        context = super(LinkListView, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            voted = Vote.objects.filter(voter=self.request.user)
+            links_in_page = [link.id for link in context["object_list"]]
+            voted = voted.filter(link_id__in=links_in_page) 
+            voted = voted.values_list('link_id', flat=True)
+            context["voted"] = voted
+        return context
 
 def logout_view(request):
     logout(request)
@@ -50,6 +61,11 @@ def subreddit_selector(request, sub):
 def link_discuss(request, link):
     slug = slugify(link)
     links = Link.objects.filter(internal=slug)
+    totals = Vote.objects.filter(voter=request.user)
+    comment_votes = []
+    for item in totals:
+        if item.comment != None:
+           comment_votes.append(item.comment.id) 
     if request.method == 'POST':
         information =  request.POST.get('button').split()
         print information
@@ -65,14 +81,16 @@ def link_discuss(request, link):
             reply.save()
         if links.count() > 0:
             return render(request, 'link.html', {'link':links[0],
-                                         'comments': links[0].replies.all()
+                                         'comments': links[0].replies.all(),
+                                         'vote_list': comment_votes
                                          })
         else:
              return redirect('#')
     else:
         if links.count() > 0:
             return render(request, 'link.html', {'link':links[0],
-                                         'comments': links[0].replies.all()
+                                         'comments': links[0].replies.all(),
+                                         'vote_list': comment_votes
                                          })
         else:
              return redirect('/')
@@ -106,3 +124,36 @@ def register(request):
     return render_to_response('register.html', {
         'form': form,
     }, context_instance=RequestContext(request))
+
+def vote_comment(request, comment_id):
+    if request.method == 'POST':
+        print request.path
+        if request.user.is_authenticated:
+            comment = Comment.objects.get(id=comment_id)
+            if Vote.objects.filter(comment_id=comment_id).exists():
+                Vote.objects.filter(comment_id=comment_id).delete()
+                return redirect(request.path)
+            else:
+                Vote.objects.create(voter=request.user, comment=comment)
+                return redirect(request.path)
+        else:
+            return redirect('/login')
+    else:
+        return redirect('/')
+
+
+def vote_link(request, link_id):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            link = Link.objects.get(id=link_id)
+            if Vote.objects.filter(link_id=link_id).exists():
+                Vote.objects.filter(link_id=link_id).delete()
+                return redirect(request.path)
+            else:
+                Vote.objects.create(voter=request.user, link=link)
+                return redirect(request.path)
+        else:
+            return redirect('/login')
+        
+    else:
+        return redirect('/')
