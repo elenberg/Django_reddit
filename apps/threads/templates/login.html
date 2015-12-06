@@ -1,0 +1,42 @@
+{# {% extends 'auth_base.html' %} #}
+
+{% block content %}
+<div class="tb">
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+{% if next %}
+    {% if user.is_authenticated %}
+    <p>Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+    {% else %}
+    <p>Please login to see this page.</p>
+    {% endif %}
+{% endif %}
+
+<form method="post" action="{% url 'threads:auth'%}" class="fc-submit-form">
+{% csrf_token %}
+<table class="tb__table">
+<tr class="tb__table__row">
+    <td class="tb__table__row__item tb--label">{{ form.username.label_tag }}</td>
+</tr>
+<tr class="tb__table__row">
+    <td class="tb__table__row__item">{{ form.username }}</td>
+</tr>
+<tr class="tb__table__row">
+    <td class="tb__table__row__item tb--label">{{ form.password.label_tag }}</td>
+</tr>
+<tr class="tb__table__row">
+    <td class="tb__table__row__item">{{ form.password }}</td>
+</tr>
+</table>
+
+<input type="submit" value="login" class="tb__btn"/>
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+{# Assumes you setup the password_reset view in your URLconf #}
+{# <p><a href="{% url 'reports:password_reset' %}">Lost password?</a></p> #}
+
+</div>
+{% endblock %}

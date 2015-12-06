@@ -1,0 +1,17 @@
+{% extends 'base.html'%}
+{% block content %}
+<h3>It looks like that subreddit doesn't exist yet!</h3>
+{% if user.is_authenticated %}
+<p>
+  To create this subreddit please press this button.
+</p>
+  <form class="" action="" method="post">
+    {% csrf_token %}
+      <button value="{{subreddit}}" class="btn btn-primary btn-lg disabled" name="button"> {{subreddit}}</button>
+  </form>
+{% else %}
+<p>
+  If you'd like to create it. You need to log in.
+</p>
+{% endif %}
+{% endblock %}

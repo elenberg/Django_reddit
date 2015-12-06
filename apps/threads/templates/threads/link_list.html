@@ -1,0 +1,27 @@
+{%extends 'base.html'%}
+{% block content%}
+
+<div class="container col-sm-10"></div>
+{% if submit %}
+<div class="alert alert-success alert-dismissable" role="alert">Link submitted!</div>
+
+{% endif %}
+<ul class="list-group">
+  {% for link in object_list %}
+    <li class="list-group-item">
+    <div class="panel panel-">
+    	
+     <span class="badge">{{link.vote.all.count}}</span>
+     <a  href="{{link.url}}"> <big>	{{link.title}} </big></a>
+    <a  href="discuss/{{ link.internal }}">
+      <small>Discuss </small> 
+    </a>
+    
+    </div>
+    </li>
+{% endfor %}
+</ul>
+<div class="container col-sm-2">
+  <li class="list-group-item"><a href="/submit_link"> Submit a new link!</a></li>
+</div>
+{% endblock %}

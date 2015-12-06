@@ -1,0 +1,23 @@
+<li class="list-group-item"> 
+     <span class="badge pull-left">{{comments.vote.all.count}}</span>
+		{{comments.description}} 
+</li>
+{% if user.is_authenticated%}
+<p> Commenting as {{user.username}}</p>
+<form action="" method="POST">
+	
+	<textarea name="new_comment" id="" cols="75" rows="10"> Comment Reply Field</textarea>
+	<hr/>
+  <button value="c {{comments.id}}" class="btn btn-primary btn-sm disabled" name="button"> Submit Comment</button>
+    {% csrf_token %}
+</form>
+{%endif%}
+<ul class="list-group">
+{% if comments.replies.all.exists == True  %}
+{% for reply in comments.replies.all%}
+{%with comments=reply template_name="replies.html" %}
+                   {%include template_name%}
+              {%endwith%}
+{% endfor %}
+{% endif %}
+</ul>
