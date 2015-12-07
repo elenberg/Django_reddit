@@ -9,6 +9,8 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect, render
 from django.shortcuts import get_object_or_404
 from django.views.generic.edit import FormView
+from django.http import HttpResponse
+
 
 class LinkListView(ListView):
     model = Link
@@ -100,12 +102,21 @@ def submit_link(request):
         user = request.user
         title = request.POST.get('title')
         url = request.POST.get('url')
-        description = request.POST.get('description')
-        Link.objects.create(submitter=user, internal=slugify(title), title=title, url=url, description=description)
-        return render(request, 'threads/link_list.html', {
+
+        if url[:3] != 'http':
+            url = "http://" + url
+        if Link.objects.filter(url=url).exists():
+            return render(request, 'threads/link_list.html', {
             'object_list': Link.objects.all(),
-            'submit': True
-            })
+            'repost': True,
+            })    
+        else: 
+            description = request.POST.get('description')
+            Link.objects.create(submitter=user, internal=slugify(title), title=title, url=url, description=description)
+            return render(request, 'threads/link_list.html', {
+                'object_list': Link.objects.all(),
+                'submit': True,
+                })
     else:
         return render(request, 'submit_link.html')
 
@@ -148,12 +159,12 @@ def vote_link(request, link_id):
             link = Link.objects.get(id=link_id)
             if Vote.objects.filter(link_id=link_id).exists():
                 Vote.objects.filter(link_id=link_id).delete()
-                return redirect(request.path)
+                return HttpResponse('Removed')
             else:
                 Vote.objects.create(voter=request.user, link=link)
-                return redirect(request.path)
+                return HttpResponse('Added')
         else:
-            return redirect('/login')
+            return HttpResponse('Invalid')
         
     else:
         return redirect('/')

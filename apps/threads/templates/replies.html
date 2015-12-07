@@ -7,29 +7,72 @@
 
  	<form action="/v/c/{{comments.id}}/" method="POST">
     		{% csrf_token %}
- 	<button id="voteButton-{{comments.id}}">+</button>
+ 	<button class="btn btn-default" id="voteButton-{{comments.id}}">Like</button>
  	</form>
     {% else %}
  	<form action="/v/c/{{comments.id}}/" method="POST">
     		{% csrf_token %}
- 	<button id="voteButton-{{comments.id}}">-</button>
+ 	<button class="btn btn-default" id="voteButton-{{comments.id}}">Unlike</button>
  	</form>
 	{%endif%}
 	<script>
 	$('#voteButton-{{comments.id}}').click( function (){
-		if( $('#voteButton-{{comments.id}}').text() == '+'){
+		if( $('#voteButton-{{comments.id}}').text() == 'Like'){
 
 		var current = parseInt($('#votes-{{comments.id}}').text());
 		var newVal = current + 1;
 		$('#votes-{{comments.id}}').text(newVal);
-		$('#voteButton-{{comments.id}}').text('-')		
+		$('#voteButton-{{comments.id}}').text('Unlike')		
 		}
 		else{
 		var current = parseInt($('#votes-{{comments.id}}').text());
 		var newVal = current - 1;
 		$('#votes-{{comments.id}}').text(newVal);
-		$('#voteButton-{{comments.id}}').text('+')		
+		$('#voteButton-{{comments.id}}').text('Like')		
 		}
+		event.preventDefault();
+
+		function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+		
+		function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    	return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}	
+
+		var csrftoken = getCookie('csrftoken');
+
+		$.ajaxSetup({
+    	beforeSend: function(xhr, settings) {
+		        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+		            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+		        }
+		    }
+		});
+		$.ajax({
+			type:'POST',
+			url: '/v/c/{{comments.id}}/',
+			data: {
+				'comment_id': {{comments.id}},
+			},
+			success: function(){
+				console.log('Success!');
+			}
+		});
+		return false;
 	});
 	</script>
 		{{comments.description}} 
@@ -51,14 +94,17 @@
 <p> Commenting as {{user.username}}</p>
 <form action="" method="POST">
 	
-	<textarea name="new_comment" id="" cols="75" rows="10"> Comment Reply Field</textarea>
+	<textarea name="new_comment" id="" cols="75" rows="10"></textarea>
 	<hr/>
-  <button value="c {{comments.id}}" class="btn btn-primary btn-sm disabled" name="button"> Submit Comment</button>
+  <button value="c {{comments.id}}" class="btn btn-primary btn-sm" name="button"> Submit Comment</button>
     {% csrf_token %}
 </form>
  </div>
  </div> 
 {%endif%}
+	
+<div class="container">
+	
 <ul class="list-group">
 {% if comments.replies.all.exists == True  %}
 {% for reply in comments.replies.all%}
@@ -68,3 +114,4 @@
 {% endfor %}
 {% endif %}
 </ul>
+</div>
