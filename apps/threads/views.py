@@ -63,11 +63,12 @@ def subreddit_selector(request, sub):
 def link_discuss(request, link):
     slug = slugify(link)
     links = Link.objects.filter(internal=slug)
-    totals = Vote.objects.filter(voter=request.user)
     comment_votes = []
-    for item in totals:
-        if item.comment != None:
-           comment_votes.append(item.comment.id) 
+    if request.user.is_authenticated == True:
+        totals = Vote.objects.filter(voter=request.user)
+        for item in totals:
+            if item.comment != None:
+               comment_votes.append(item.comment.id) 
     if request.method == 'POST':
         information =  request.POST.get('button').split()
         print information
